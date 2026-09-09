@@ -12,9 +12,15 @@ async function getAllProjects(req, res) {
 
 async function createProject(req, res) {
   try {
-    const { title, description } = req.body;
+    const { namaProyek, lokasi, tingkatKerusakan, targetRestorasi } = req.body;
     const newProject = await prisma.project.create({
-      data: { title, description }
+      data: {
+        adminId: req.user.id,
+        namaProyek,
+        lokasi,
+        tingkatKerusakan,
+        targetRestorasi
+      }
     });
     return success(res, 'Proyek berhasil ditambahkan!', newProject, 201);
   } catch (err) {
@@ -22,5 +28,4 @@ async function createProject(req, res) {
   }
 }
 
-// Pastikan baris ini persis seperti ini agar terbaca oleh routes
 module.exports = { getAllProjects, createProject };

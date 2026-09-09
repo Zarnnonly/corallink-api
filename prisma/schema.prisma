@@ -1,0 +1,71 @@
+// CoralLink - Database Schema (MySQL)
+// SDG 14: Life Below Water
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  investor
+}
+
+enum StatusVerifikasi {
+  pending
+  verified
+  rejected
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String   @unique
+  password  String
+  role      Role     @default(investor)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relasi: admin membuat banyak project
+  projects  Project[]   @relation("AdminProjects")
+  // Relasi: investor melakukan banyak donasi
+  donations Donation[]
+
+  @@map("users")
+}
+
+model Project {
+  id                Int               @id @default(autoincrement())
+  adminId           Int               @map("admin_id")
+  namaProyek        String            @map("nama_proyek")
+  lokasi            String
+  imageUrl          String?           @map("image_url")
+  aiStatus          String?           @map("ai_status")
+  confidenceScore   Float?            @map("confidence_score")
+  tingkatKerusakan  String?           @map("tingkat_kerusakan")
+  targetRestorasi   String?           @map("target_restorasi")
+  statusVerifikasi  StatusVerifikasi  @default(pending) @map("status_verifikasi")
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  admin     User       @relation("AdminProjects", fields: [adminId], references: [id])
+  donations Donation[]
+
+  @@map("projects")
+}
+
+model Donation {
+  id            Int      @id @default(autoincrement())
+  projectId     Int      @map("project_id")
+  investorId    Int      @map("investor_id")
+  jumlahDonasi  Decimal  @map("jumlah_donasi") @db.Decimal(12, 2)
+  pesanDukungan String?  @map("pesan_dukungan") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  project  Project @relation(fields: [projectId], references: [id])
+  investor User    @relation(fields: [investorId], references: [id])
+
+  @@map("donations")
+}

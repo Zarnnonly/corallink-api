@@ -1,0 +1,26 @@
+[Unit]
+Description=CoralLink coral image prediction
+After=network.target
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=corallink
+Group=corallink
+WorkingDirectory=/opt/corallink-ml
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=KERAS_HOME=/tmp/keras
+ExecStart=/opt/corallink-ml/.venv/bin/python -c "from app import app; app.run(host='127.0.0.1', port=5000, debug=False)"
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

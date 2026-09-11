@@ -5,7 +5,8 @@ const prisma = require('../config/prisma');
 const { success, error } = require('../utils/response');
 
 const registerSchema = z.object({
-  nama: z.string().min(2, 'Nama minimal 2 karakter'),
+  nama: z.string().trim().min(2, 'Nama minimal 2 karakter').max(191),
+  phone: z.string().trim().max(30).regex(/^[+0-9 ()-]*$/, 'Nomor telepon tidak valid').optional(),
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
 });
@@ -25,11 +26,11 @@ function generateToken(user) {
 
 // POST /api/auth/register
 async function register(req, res) {
-  const parsed = registerSchema.safeParse(req.body);
+  const parsed = registerSchema.safeParse({ ...req.body, nama: req.body.nama ?? req.body.name });
   if (!parsed.success) {
     return error(res, parsed.error.errors[0].message, 400);
   }
-  const { nama, email, password } = parsed.data;
+  const { nama, email, password, phone } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -39,13 +40,13 @@ async function register(req, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = await prisma.user.create({
-    data: { nama, email, password: hashedPassword, role: 'investor' },
+    data: { nama, email, phone: phone || null, password: hashedPassword, role: 'investor' },
   });
 
   const token = generateToken(user);
 
   return success(res, 'Registrasi berhasil', {
-    user: { id: user.id, nama: user.nama, email: user.email, role: user.role },
+    user: { id: user.id, nama: user.nama, name: user.nama, phone: user.phone, email: user.email, role: user.role },
     token,
   }, 201);
 }
@@ -71,7 +72,7 @@ async function login(req, res) {
   const token = generateToken(user);
 
   return success(res, 'Login berhasil', {
-    user: { id: user.id, nama: user.nama, email: user.email, role: user.role },
+    user: { id: user.id, nama: user.nama, name: user.nama, phone: user.phone, email: user.email, role: user.role },
     token,
   });
 }
@@ -80,7 +81,7 @@ async function login(req, res) {
 async function profile(req, res) {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: { id: true, nama: true, email: true, role: true, createdAt: true },
+    select: { id: true, nama: true, phone: true, email: true, role: true, createdAt: true },
   });
 
   if (!user) {

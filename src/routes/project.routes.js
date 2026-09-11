@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const { authenticate } = require('../middleware/auth.middleware');
-const { getAllProjects, createProject } = require('../controllers/project.controller');
-
+const { requireRole } = require('../middleware/role.middleware');
+const upload = require('../middleware/upload.middleware');
+const { getAllProjects, getProject, createProject, updateMilestones, deleteProject } = require('../controllers/project.controller');
 router.get('/', getAllProjects);
-router.post('/', authenticate, createProject);
-
+router.get('/:id', getProject);
+router.post('/', authenticate, requireRole('admin'), upload.single('image'), createProject);
+router.put('/:id/milestones', authenticate, requireRole('admin'), updateMilestones);
+router.delete('/:id', authenticate, requireRole('admin'), deleteProject);
 module.exports = router;

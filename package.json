@@ -21,16 +21,21 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.20.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "form-data": "^4.0.6",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.3.0",
+    "sharp": "^0.35.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.7",
     "prisma": "^5.20.0"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   }
 }

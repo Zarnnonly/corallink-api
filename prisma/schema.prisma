@@ -26,6 +26,7 @@ model User {
   nama      String
   email     String   @unique
   password  String
+  phone     String? @db.VarChar(30)
   role      Role     @default(investor)
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -33,6 +34,7 @@ model User {
   projects  Project[]   @relation("AdminProjects")
   // Relasi: investor melakukan banyak donasi
   donations Donation[]
+  transactions Transaction[]
 
   @@map("users")
 }
@@ -50,8 +52,20 @@ model Project {
   statusVerifikasi  StatusVerifikasi  @default(pending) @map("status_verifikasi")
   createdAt         DateTime          @default(now()) @map("created_at")
 
+  description       String? @db.Text
+  species           String?
+  fundingTarget     Decimal? @db.Decimal(14, 2)
+  duration          Int?
+  fragments         Int?
+  area              Float?
+  milestones        Json?
+  milestoneVersion  Int @default(0)
+  progressNote      String? @db.Text
+  aiAnalysis        Json?
+
   admin     User       @relation("AdminProjects", fields: [adminId], references: [id])
   donations Donation[]
+  transactions Transaction[]
 
   @@map("projects")
 }
@@ -68,4 +82,35 @@ model Donation {
   investor User    @relation(fields: [investorId], references: [id])
 
   @@map("donations")
+}
+
+model Transaction {
+  id String @id @default(uuid()) @db.VarChar(36)
+  investorId Int @map("investor_id")
+  projectId Int @map("project_id")
+  amount Decimal @db.Decimal(12, 2)
+  type String @default("One-Time Contribution") @db.VarChar(50)
+  contributorName String? @db.VarChar(191)
+  contributorEmail String? @db.VarChar(191)
+  status String @default("Pending") @db.VarChar(20)
+  proofFile String? @map("proof_file")
+  idempotencyKey String @unique @map("idempotency_key") @db.VarChar(100)
+  reviewNote String? @map("review_note") @db.Text
+  reviewedBy Int? @map("reviewed_by")
+  reviewedAt DateTime? @map("reviewed_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  investor User @relation(fields: [investorId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+  @@index([investorId, createdAt])
+  @@index([projectId, status])
+  @@map("transactions")
+}
+
+model PaymentSettings {
+  id Int @id @default(1)
+  bankName String @db.VarChar(100)
+  accountNumber String @db.VarChar(100)
+  accountHolder String @db.VarChar(191)
+  updatedAt DateTime @updatedAt
+  @@map("payment_settings")
 }

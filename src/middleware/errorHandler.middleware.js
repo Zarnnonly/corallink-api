@@ -8,7 +8,7 @@ function errorHandler(err, req, res, next) {
 
   res.status(err.statusCode || 500).json({
     success: false,
-    message: err.message || 'Terjadi kesalahan pada server',
+    message: (process.env.NODE_ENV !== 'production' || (err.statusCode >= 400 && err.statusCode < 500) ? err.message : null) || 'Terjadi kesalahan pada server',
     data: null,
   });
 }
